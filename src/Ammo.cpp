@@ -23,8 +23,12 @@ void Ammo::move() {
 
 	ammo_exist = isAmmoExist();
 	if (ammo_exist == TRUE) {
+		setfillcolor(RGB(255, 0, 0));
 		solidcircle(ammo_x, ammo_y, ammo_r);
-		move_time += speed;
+		//move_time += speed;
+		for (int i = 0; i <= speed; i++) {
+			move_time++;
+		}
 	}
 }
 bool Ammo::getExist() {

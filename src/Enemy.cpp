@@ -6,10 +6,11 @@
 #include<Windows.h>
 #include<cmath>
 
-Enemy::Enemy(int spd, int x,int r) {
+Enemy::Enemy(int spd, int x, int r, COLORREF colorrgb) {
 	enemy_exist = TRUE;
 	touch_ammo = FALSE;
 	speed = spd;
+	enemy_color = colorrgb;
 	enemy_x = x;
 	enemy_y = 0;
 	enemy_r = r;
@@ -17,6 +18,7 @@ Enemy::Enemy(int spd, int x,int r) {
 void Enemy::move() {
 	enemy_exist = isEnemyExist();
 	if (enemy_exist == TRUE) {
+		setfillcolor(enemy_color);
 		solidcircle(enemy_x, enemy_y, enemy_r);
 		enemy_y += speed;
 	}

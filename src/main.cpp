@@ -1,4 +1,6 @@
 #pragma once
+#define _CRT_SECURE_NO_WARNINGS
+
 #include<graphics.h>
 #include<Windows.h>
 #include<ctime>
@@ -14,12 +16,14 @@
 
 void initGameWindow(COLORREF backgroundcolor);//初始化
 void mainLoop();//主循环
+void DrawScore();//绘制分数
 void DrawCannon(POINT* Point);//绘制大炮
 double GetPointsDistance(int x1, int y1, int x2, int y2);//求两点距离
 void CreateAmmo();//子弹创建
 void MoveAmmo();//子弹移动
 void DeleteAmmo();//子弹销毁
 void CreateEnemy();//敌人创建
+void RandEnemyDataCreate();//随机生成敌人初始数据
 void MoveEnemy();//敌人移动
 void EnemyTouch();//敌人碰撞检测
 void MouseLeftDownEvent();//鼠标左键按下检测
@@ -37,19 +41,22 @@ std::list<Enemy*> SavedEnemy;
 std::list<Enemy*>::iterator EnemyIterBegin;
 std::list<Enemy*>::iterator EnemyIterEnd;
 
-double CannonRangleCos = 0;//大炮的cos值
-double CannonRangleSin = 0;//大炮的sin值
+double CannonRangleCos = 0;//大炮当前的cos值
+double CannonRangleSin = 0;//大炮当前的sin值
 bool MouseLeftDown;//鼠标左键是否按下
 const int CannonLength = 100;//大炮的长度(externed)
-const int AmmoSpeed = 30;//子弹的速度
+const int AmmoSpeed = 50;//子弹的速度
 int AmmoR = 4;//子弹大小
 int Score = 0;//分数
+wchar_t ScoreStr[50];
 
 //敌人随机生成数据
 int RandEnemySpeed = 0;//敌人速度
 int RandEnemyX = 0;//敌人出生坐标x
 int RandEnemyR = 0;//敌人半径
 int RandEnemyTime = 0;//敌人生成间隔
+int RandEnemyColorR = 0, RandEnemyColorG = 0, RandEnemyColorB = 0;//敌人颜色RGB数据
+COLORREF RandEnemyColorRGB;
 
 //统计数据
 unsigned int FrameCount = 0;//总帧数
@@ -100,6 +107,7 @@ int main() {
 		FrameTimeEnd = GetTickCount();
 		FrameTimeStart_Temp = FrameTimeStart;
 		FrameTimeEnd_Temp = FrameTimeEnd;
+		
 	}
 	closegraph();
 	return 0;
@@ -121,8 +129,15 @@ void mainLoop() {
 
 	MoveAmmo();
 	MoveEnemy();
+	DrawScore();
 
 	MouseLeftDownEvent();
+}
+void DrawScore() {
+	static RECT scorePos = { 0, 0, 10, 10 };
+	//static LOGFONT fontstyle = {};
+	swprintf(ScoreStr, 50 ,L"SCORE:%d", Score);
+	drawtext(ScoreStr,&scorePos, DT_SINGLELINE | DT_NOCLIP);
 }
 void DrawCannon(POINT* Point) {
 	double adjacentside = (Point->x) - 400L;//邻边
@@ -182,22 +197,30 @@ void DeleteAmmo() {
 	}
 }
 void CreateEnemy() {
-
 	while (1) {
-		srand((int)(time(NULL)+ FpsTime));
-		RandEnemySpeed = (rand() % 2) + 1;
-		srand((int)(time(NULL)) + FpsTime);
-		RandEnemyX = (rand() % 781) + 10;
-		srand((int)(time(NULL)) + FpsTime);
-		RandEnemyR = (rand() % 21) + 10;
-		srand((int)(time(NULL)) + FpsTime);
-		RandEnemyTime = (rand() % 2001) + 1000;
-
-		Enemy* newenemy = new Enemy(RandEnemySpeed, RandEnemyX, RandEnemyR);
+		RandEnemyDataCreate();
+		Enemy* newenemy = new Enemy(RandEnemySpeed, RandEnemyX, RandEnemyR, RandEnemyColorRGB);
 		SavedEnemy.emplace_back(newenemy);
 		++AllEnemyCount;
 		Sleep(RandEnemyTime);
 	}
+}
+void RandEnemyDataCreate() {
+	srand((int)(time(NULL) + FpsTime));
+	RandEnemySpeed = (rand() % 2) + 1;
+	srand((int)(time(NULL)) + FpsTime);
+	RandEnemyX = (rand() % 781) + 10;
+	srand((int)(time(NULL)) + FpsTime);
+	RandEnemyR = (rand() % 21) + 10;
+	srand((int)(time(NULL)) + FpsTime);
+	RandEnemyTime = (rand() % 2001) + 1000;
+	srand((int)(clock()) + FpsTime);
+	RandEnemyColorR = (rand() % 256);
+	srand((int)(time(NULL)) + FpsTime);
+	RandEnemyColorG = (rand() % 256);
+	srand((int)(clock()) - FpsTime);
+	RandEnemyColorB = (rand() % 256);
+	RandEnemyColorRGB = RGB(RandEnemyColorR, RandEnemyColorG, RandEnemyColorB);
 }
 void MoveEnemy() {
 	EnemyIterBegin = SavedEnemy.begin();
@@ -276,6 +299,7 @@ void DEBUG() {
 		printf("EnmeyX:%d\n", RandEnemyX);
 		printf("EnmeyR:%d\n", RandEnemyR);
 		printf("EnmeyTime:%d\n", RandEnemyTime);
+		printf("EnmeyColorRGB:%d %d %d\n", RandEnemyColorR, RandEnemyColorG, RandEnemyColorB);
 
 		Sleep(30);
 		system("cls");
